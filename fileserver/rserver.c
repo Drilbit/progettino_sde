@@ -7,9 +7,11 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 const char nome_cartella[] = "fileserver/";
 const char cartella[] = "mkdir -m 777 fileserver";
+const char error[] = "ERROR";
 
 int connessione(int sd){
 
@@ -18,6 +20,7 @@ int connessione(int sd){
 int add (int sk) {
     const int MAX_LEN = 1024;
 	char buff[MAX_LEN];
+    char nome[MAX_LEN];
     int fd; //file descriptor
     mode_t permessi = (S_IRUSR || S_IWUSR || S_IXUSR
                     || S_IRGRP || S_IWGRP || S_IXGRP
@@ -26,19 +29,24 @@ int add (int sk) {
     int rcv;    //byte ricevuti
     
     //CREAZIONE FILE
-    strcpy(buff, nome_cartella);
-    printf("directory: %s\n", buff);
-    rcv = recv(sk, &( buff[strlen(nome_cartella)] ), MAX_LEN, 0);
-    buff[strlen(nome_cartella) + rcv] = '\0';
-    printf("nuovo file: %s\n", buff);
-    fd = open(buff, O_CREAT || O_RDONLY, permessi);
+    rcv = recv(sk, &(nome[1]), MAX_LEN, 0);
+    nome[0] = 'a';
+    nome[rcv+1] = '\0';
+    printf("nuovo file: %s\n", nome);
+    fd = open(nome, O_CREAT, permessi);
+    //if ( (fd = open(nome, O_CREAT || O_RDONLY, permessi)) < 0) {
+        //printf("Errore: File con lo stesso nome già presente\n");
+        //send(sk, error, strlen(error), 0);
+        //gestione errore
+    //}
     printf("file descriptor: %d\n", fd);
-    //se già file con stesso nome??
-
+    
     //COPIA CONTENUTI FILE
     while ( (rcv = recv(sk, &buff, MAX_LEN, 0)) == MAX_LEN) {
         write(fd, &buff, rcv);
     }
+
+    //
 
 	return 0;
 }

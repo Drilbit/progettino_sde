@@ -55,8 +55,8 @@ int add (char* percorso, int sk) {
 	//INVIO FILE AL SERVER
 	printf("Invio del file %s al server in corso...\n", percorso);
 	send(sk, percorso, len, 0);		//invia nome del file
-	while (read(fd, buff, MAXLEN)) {//invia file	
-		send(sk, buff, MAXLEN, 0);
+	while ( (rd = read(fd, buff, MAXLEN)) > 0) {//invia file	
+		send(sk, buff, rd, 0);
 	}
 	printf("File inviato con successo\n");
 
